@@ -1,0 +1,25 @@
+services:
+  clickhouse-server:
+    image: clickhouse/clickhouse-server:latest
+    volumes:
+      - ./init:/docker-entrypoint-initdb.d
+      - ./sm_test_data.csv:/tmp/sm_test_data.csv
+    ports:
+      - "8123:8123"
+      - "9000:9000"
+
+  airflow:
+    build: .
+    environment:
+      AIRFLOW_CONN_CLICKHOUSE_DEFAULT: 'clickhouse://default:@clickhouse-server:9000'
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+      - ./airflow/logs:/opt/airflow/logs
+      - ./airflow/plugins:/opt/airflow/plugins
+    depends_on:
+      - clickhouse-server
+    ports:
+      - "8080:8080"
+
+volumes:
+  postgres_data:
